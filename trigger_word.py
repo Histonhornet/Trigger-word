@@ -1,7 +1,7 @@
 
 """ Trigger word project:
 This program defines and detects a word in an audio stream
-This is a similar to trigger word 'Alexa' or 'Hey google'
+This is a similar to trigger word 'Alexa' or 'Hey Google'
 
  """
 import numpy as np
