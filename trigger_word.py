@@ -86,12 +86,6 @@ def insertOnes(y,segment_end_ms):
 
     return y
 
-
- """ this function creates a training instance 
-     it uses a backgournd clip from backgrounds, an activate clip from 
-     activates and a negative clip from negatives. All of these clips are
-     overlayed into the background clip. 
-     """
     
 
 def creatreTrainingExample(background,activates,negatives):
