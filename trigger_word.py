@@ -15,6 +15,11 @@ import IPython
 from td_utils import *
 import matplotlib.pyplot as plt
 import time
+from keras.callbacks import ModelCheckpoint
+from keras.models import Model, load_model, Sequential
+from keras.layers import Dense, Activation, Dropout, Input, Masking, TimeDistributed, LSTM, Conv1D
+from keras.layers import GRU, Bidirectional, BatchNormalization, Reshape,LSTM
+from keras.optimizers import Adam
 
 
 #x = graph_spectrogram("./audio_examples/example_train.wav")
@@ -82,7 +87,12 @@ def insertOnes(y,segment_end_ms):
     return y
 
 
-
+ """ this function creates a training instance 
+     it uses a backgournd clip from backgrounds, an activate clip from 
+     activates and a negative clip from negatives. All of these clips are
+     overlayed into the background clip. 
+     """
+    
 
 def creatreTrainingExample(background,activates,negatives):
     """ this function creates a training instance 
@@ -124,12 +134,8 @@ def creatreTrainingExample(background,activates,negatives):
 
 #ax2.plot(y[0])
 
-# Full training procedure 
-from keras.callbacks import ModelCheckpoint
-from keras.models import Model, load_model, Sequential
-from keras.layers import Dense, Activation, Dropout, Input, Masking, TimeDistributed, LSTM, Conv1D
-from keras.layers import GRU, Bidirectional, BatchNormalization, Reshape,LSTM
-from keras.optimizers import Adam
+# Full training procedure using Keras
+
 
 # Load preprocessed training set examples
 X = np.load("./XY_train/X.npy")
@@ -141,7 +147,8 @@ Y_dev = np.load("./XY_dev/Y_dev.npy")
 
 
 
-#This section defines the trigger word model
+#This section defines the  model
+
 def model(input_shape):
     X_input = Input(shape=input_shape)
 
@@ -175,15 +182,14 @@ def model(input_shape):
 model = model(input_shape=(Tx,n_freq))
 model.summary()
 
-#model = load_model('./models/tr_model.h5')
 
-opt = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, decay=0.01)
-model.compile(loss='binary_crossentropy', optimizer=opt, metrics=["accuracy"])
-model.fit(X,Y,batch_size=5,epochs=5)
-loss, acc = model.evaluate(X_dev,Y_dev)
+opt = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, decay=0.01) # optimizer
+model.compile(loss='binary_crossentropy', optimizer=opt, metrics=["accuracy"]) # compile the model
+model.fit(X,Y,batch_size=5,epochs=5) # fit the model
+loss, acc = model.evaluate(X_dev,Y_dev) # calculate loss and accuracy
 print("Dev set accuracy:", acc)
 
-
+# This function predicts the word in the audio stream "file_name" 
 def detectTriggerWord(file_name):
     plt.subplot(2,1,1)
     x = graph_spectrogram(file_name)
@@ -193,23 +199,3 @@ def detectTriggerWord(file_name):
     return prediction
 
 
-chime_file = "audio_examples/chime.wav"
-def chime_on_activate(filename, predictions, threshold):
-    audio_clip = AudioSegment.from_wav(filename)
-    chime = AudioSegment.from_wav(chime_file)
-    Ty = predictions.shape[1]
-    # Step 1: Initialize the number of consecutive output steps to 0
-    consecutive_timesteps = 0
-    # Step 2: Loop over the output steps in the y
-    for i in range(Ty):
-        # Step 3: Increment consecutive output steps
-        consecutive_timesteps += 1
-        # Step 4: If prediction is higher than the threshold and more than 75 consecutive output steps have passed
-        if predictions[0,i,0] > threshold and consecutive_timesteps > 75:
-            # Step 5: Superpose audio and background using pydub
-            audio_clip = audio_clip.overlay(chime, position = ((i / Ty) * audio_clip.duration_seconds)*1000)
-            # Step 6: Reset consecutive output steps to 0
-            consecutive_timesteps = 0
-        
-    audio_clip.export("chime_output.wav", format='wav')
-    IPython.display.Audio("./raw_data/dev/1.wav")
