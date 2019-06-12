@@ -1,9 +1,9 @@
 
 """ Trigger word project:
-This program defines and detects a word in an audio stream
-This is a similar to trigger word 'Alexa' or 'Hey Google'.
+This program defines and detects a word in an audio stream.
+This is similar to trigger-words 'Alexa' or 'Hey Google'.
 You can also use wavelets transform scalegram instead of FFT 
-spectrogram and use PCA to reduce the dimensionality. 
+spectrogram and use PCA to reduce dimensionality. 
 Auth: Zak Moktadir
 
  """
