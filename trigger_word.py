@@ -1,7 +1,9 @@
 
 """ Trigger word project:
 This program defines and detects a word in an audio stream
-This is a similar to trigger word 'Alexa' or 'Hey Google'
+This is a similar to trigger word 'Alexa' or 'Hey Google'.
+You can also use wavelets transform scalegram instead of FFT 
+spectrogram and use PCA to reduce the dimensionality. 
 
  """
 import numpy as np
@@ -12,7 +14,7 @@ import io
 import os
 import glob
 import IPython
-from td_utils import *
+from utils import *
 import matplotlib.pyplot as plt
 import time
 from keras.callbacks import ModelCheckpoint
