@@ -24,12 +24,12 @@ from keras.optimizers import Adam
 
 #x = graph_spectrogram("./audio_examples/example_train.wav")
 
-_, data = wavfile.read("./audio_examples/example_train.wav")
+_, data = wavfile.read("./Wav_examples/example_train.wav")
 
 print("Time steps in audio recording before spectrogram", data[:,0].shape)
 #print("Time steps in input after spectrogram", x.shape)
 
-IPython.display.Audio("./raw_data/activates/1.wav")
+IPython.display.Audio("./raw_wavs/activates/1.wav")
 
 Tx = 5511 # length of the time vector in the spectrogram
 n_freq= 101
@@ -50,12 +50,12 @@ def get_random_time_segment(segment_ms):
 
 # check if the segment is overlapping with existing segments
 
-def is_overlapping(new_segment,previous_segments): 
+def overlapping(new_segment,previous_segments): 
     
     new_start,new_end= new_segment
 
     for prev_seg_start, prev_seg_end in previous_segments:
-        if new_start <= prev_seg_end and new_end >= prev_seg_start:
+        if new_start <= prev_seg_end and new_end >= prev_seg_start: # overlappin condition
             return True
     
     return False
@@ -67,7 +67,7 @@ def insertAudioClip(background,clip,existing_segemnts):
     
     new_segment = get_random_time_segment(len_ms)
 
-    while is_overlapping(new_segment,existing_segemnts):
+    while overlapping(new_segment,existing_segemnts):
         new_segment = get_random_time_segment(len_ms)
     
     existing_segemnts.append(new_segment)
@@ -75,14 +75,15 @@ def insertAudioClip(background,clip,existing_segemnts):
 
     return new_background, new_segment
 
-# This function inserts 1's in the output vector to identify the
+# labeling :this function inserts 1's in the output vector to identify the
 # end of the trigger word. Here Y is the output of the network
 # and segments_end_ms is the time from which a series of ones starts
-def insertOnes(y,segment_end_ms):
+# n : number of 1's in the segment
+def labelWithOnes(y,segment_end_ms,n):
     
     index = int(Ty*segment_end_ms/1e4)
 
-    y[0,index+1:index+51] = 1
+    y[0,index+1:index+n] = 1
 
     return y
 
@@ -105,7 +106,7 @@ def creatreTrainingExample(background,activates,negatives):
      # choose a random activate clip from the list of activates
     for i in rand_activates:
         background, activate_segment = insertAudioClip(background,  activates[i],existing_segments)
-        y = insertOnes(y,activate_segment[1])
+        y = labelWithOnes(y,activate_segment[1],60)
     
     for i in rand_negatives:
         background, _ = insertAudioClip(background,negatives[i], existing_segments)
@@ -113,10 +114,9 @@ def creatreTrainingExample(background,activates,negatives):
 
     background = match_target_amplitude(background, -20.0)
 
-    file_handle = background.export("train" + ".wav", format="wav")
-    print("File (train.wav) was saved in your directory.")
+    file_handle = background.export("train" + ".wav", format="wav") # save the new example into the disk
 
-    x = graph_spectrogram("train.wav")
+    x = graph_spectrogram("train.wav") # you can visualise the spectrogram to test your file
 
     return x,y
 
