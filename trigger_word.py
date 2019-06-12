@@ -33,7 +33,7 @@ IPython.display.Audio("./raw_data/activates/1.wav")
 
 Tx = 5511 # length of the time vector in the spectrogram
 n_freq= 101
-Ty = 1375 # GRU output
+Ty = 1375 # LSTM output
 
 activates, negatives, backgrounds = load_raw_audio()
 
@@ -152,15 +152,15 @@ def model(input_shape):
     X = Activation('relu')(X)
     X = Dropout(0.8)(X)
 
-    # 1st GRU layer 
+    # 1st LSTM layer 
 
-    X = GRU(units = 128, return_sequences = True)(X)
+    X = GRU(units = 256, return_sequences = True)(X)
     X = Dropout(0.8)(X)
     X = BatchNormalization()(X)
 
-    # 2nd GRU layer
+    # 2nd LSTM layer
 
-    X = GRU(units = 128, return_sequences = True)(X)
+    X = LSTM(units = 256, return_sequences = True)(X)
     X = Dropout(0.8)(X)
     X = BatchNormalization()(X)
     X = Dropout(0.8)(X)
